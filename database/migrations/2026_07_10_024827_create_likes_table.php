@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('review_id')
                 ->constrained('reviews')
                 ->cascadeOnDelete();
-              $table->unique(['user_id', 'review_id']);
+            $table->unique(['user_id', 'review_id']);
             $table->timestamps();
         });
     }
