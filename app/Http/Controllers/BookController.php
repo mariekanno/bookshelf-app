@@ -92,7 +92,7 @@ class BookController extends Controller
      */
     public function update(UpdateBookRequest $request, Book $book)
     {
-        $this->authorize('updare', $book);
+        $this->authorize('update', $book);
 
         $validated = $request->validated();
 
