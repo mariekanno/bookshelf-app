@@ -25,7 +25,12 @@ class StoreBookRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
-            'isbn' => 'required|string|regex:/^[0-9]{13}$|unique:books,isbn',
+            'isbn' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{13}$/',
+                'unique:books, isbn',
+            ],
             'published_date' => 'required|date',
             'description' => 'nullable|string',
             'image_url' => 'nullable|url|max:255',
