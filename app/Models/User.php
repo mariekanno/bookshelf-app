@@ -57,7 +57,7 @@ class User extends Authenticatable
             'favorites',
             'user_id',
             'book_id'
-        );
+        )->withTimestamps();
     }
 
     public function reviews(): HasMany
@@ -82,6 +82,6 @@ class User extends Authenticatable
             'likes',
             'user_id',
             'review_id'
-        );
+        )->withTimestamps();
     }
 }

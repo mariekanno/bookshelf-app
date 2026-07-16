@@ -34,7 +34,7 @@ class Book extends Model
             'book_genre',
             'book_id',
             'genre_id'
-        );
+        )->withTimestamps();
     }
 
     public function reviews(): HasMany
@@ -45,5 +45,15 @@ class Book extends Model
     public function favorites(): HasMany
     {
         return $this->hasMany(Favorite::class);
+    }
+
+    public function favoritedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'favorites',
+            'book_id',
+            'user_id'
+        )->withTimestamps();
     }
 }
