@@ -12,11 +12,11 @@ class FavoriteController extends Controller
     public function index()
     {
         $books = auth()->user()
-        ->favoriteBooks()
-        ->latest('favorites.created_at')
-        ->paginate(10);
-    
-        return view('favorites.index',compact('books'));
+            ->favoriteBooks()
+            ->latest('favorites.created_at')
+            ->paginate(10);
+
+        return view('favorites.index', compact('books'));
     }
 
     /**
@@ -25,9 +25,9 @@ class FavoriteController extends Controller
     public function store(Book $book)
     {
         auth()->user()
-        ->favoriteBooks()
-        ->syncWithoutDetaching([$book->id]);
-    
+            ->favoriteBooks()
+            ->syncWithoutDetaching([$book->id]);
+
         return back();
     }
 
@@ -37,9 +37,9 @@ class FavoriteController extends Controller
     public function destroy(Book $book)
     {
         auth()->user()
-        ->favoriteBooks()
-        ->detach($book->id);
-    
+            ->favoriteBooks()
+            ->detach($book->id);
+
         return back();
     }
 }
