@@ -14,7 +14,7 @@ class ReviewLikeController extends Controller
         auth()->user()
             ->likedReviews()
             ->toggle($review->id);
-        
+
         return back();
     }
 }
