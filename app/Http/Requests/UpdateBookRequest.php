@@ -28,7 +28,7 @@ class UpdateBookRequest extends FormRequest
             'isbn' => [
                 'required',
                 'string',
-                'regex:/^[0-9]{13}$',
+                'regex:/^[0-9]{13}$/',
                 Rule::unique('books', 'isbn')->ignore($this->route('book')),
             ],
             'published_date' => 'required|date',

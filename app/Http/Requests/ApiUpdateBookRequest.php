@@ -4,8 +4,9 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class StoreBookRequest extends FormRequest
+class ApiUpdateBookRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -29,11 +30,12 @@ class StoreBookRequest extends FormRequest
                 'required',
                 'string',
                 'regex:/^[0-9]{13}$/',
-                'unique:books,isbn',
+                Rule::unique('books', 'isbn')->ignore($this->book),
             ],
             'published_date' => 'required|date',
             'description' => 'nullable|string',
             'image_url' => 'nullable|url|max:255',
+            'created_by' => 'required|integer|exists:users,id',
             'genres' => 'required|array|min:1',
             'genres.*' => 'integer|exists:genres,id',
         ];
@@ -57,6 +59,9 @@ class StoreBookRequest extends FormRequest
             'description.string' => '説明を文字列で入力してください。',
             'image_url.url' => '画像URLは有効なURL形式で入力してください。',
             'image_url.max' => '画像URLは255文字以内で入力してください。',
+            'created_by.required' => '登録者IDは必須です。',
+            'created_by.integer' => '登録者IDは整数で入力してください。',
+            'created_by.exists' => '存在しない登録者IDです。',
             'genres.required' => 'ジャンルは必須です。',
             'genres.array' => 'ジャンルを正しく選択してください。',
             'genres.min' => 'ジャンルを1つ以上選択してください。',

@@ -11,9 +11,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [BookController::class, 'index'])
     ->name('books.index');
 
-Route::get('/books/{book}', [BookController::class, 'show'])
-    ->name('books.show');
-
 Route::get('/ranking', [RankingController::class, 'index'])
     ->name('ranking.index');
 
@@ -50,12 +47,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/favorites', [FavoriteController::class, 'index'])
         ->name('favorites.index');
 
-    Route::post('/books/{book}/favorite', [FavoriteController::class, 'store'])
-        ->name('favorites.store');
-
-    Route::delete('/books/{book}/favorite', [FavoriteController::class, 'destroy'])
-        ->name('favorites.destroy');
+    Route::post('/books/{book}/favorite', [FavoriteController::class, 'toggle'])
+        ->name('favorites.toggle');
 
     Route::post('/reviews/{review}/like', [ReviewLikeController::class, 'toggle'])
         ->name('reviews.like');
 });
+
+Route::get('/books/{book}', [BookController::class, 'show'])
+    ->name('books.show');
