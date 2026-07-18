@@ -19,26 +19,11 @@ class FavoriteController extends Controller
         return view('favorites.index', compact('books'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Book $book)
+    public function toggle(Book $book)
     {
         auth()->user()
             ->favoriteBooks()
-            ->syncWithoutDetaching([$book->id]);
-
-        return back();
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Book $book)
-    {
-        auth()->user()
-            ->favoriteBooks()
-            ->detach($book->id);
+            ->toggle($book->id);
 
         return back();
     }
