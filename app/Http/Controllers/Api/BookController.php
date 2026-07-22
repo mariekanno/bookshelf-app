@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ApiIndexBookRequest;
 use App\Http\Requests\ApiStoreBookRequest;
 use App\Http\Requests\ApiUpdateBookRequest;
+use App\Http\Resources\BookDetailResource;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -17,7 +18,7 @@ class BookController extends Controller
      */
     public function index(ApiIndexBookRequest $request): AnonymousResourceCollection
     {
-        $query = Book::with(['genres', 'reviews'])
+        $query = Book::with(['genres'])
             ->withAvg('reviews', 'rating')
             ->withCount('reviews');
 
@@ -65,13 +66,13 @@ class BookController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Book $book): BookResource
+    public function show(Book $book): BookDetailResource
     {
-        $book->load(['genres', 'reviews'])
+        $book->load(['genres', 'reviews.user'])
             ->loadAvg('reviews', 'rating')
             ->loadCount('reviews');
 
-        return new BookResource($book);
+        return new BookDetailResource($book);
     }
 
     /**

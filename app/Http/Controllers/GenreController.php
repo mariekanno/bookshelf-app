@@ -35,7 +35,7 @@ class GenreController extends Controller
 
         return redirect()
             ->route('genres.index')
-            ->with('success', 'ジャンルを登録しました');
+            ->with('success', 'ジャンルを作成しました。');
     }
 
     /**
@@ -69,7 +69,7 @@ class GenreController extends Controller
 
         return redirect()
             ->route('genres.index')
-            ->with('success', 'ジャンルを更新しました');
+            ->with('success', 'ジャンルを更新しました。');
     }
 
     /**
@@ -90,6 +90,6 @@ class GenreController extends Controller
 
         return redirect()
             ->route('genres.index')
-            ->with('success', 'ジャンルを削除しました');
+            ->with('success', 'ジャンルを削除しました。');
     }
 }

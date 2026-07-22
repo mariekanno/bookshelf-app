@@ -22,7 +22,7 @@ class ReviewController extends Controller
 
         return redirect()
             ->route('books.show', $book)
-            ->with('success', 'レビューを登録しました');
+            ->with('success', 'レビューを投稿しました。');
     }
 
     /**
@@ -46,7 +46,7 @@ class ReviewController extends Controller
 
         return redirect()
             ->route('books.show', $review->book_id)
-            ->with('success', 'レビューを更新しました');
+            ->with('success', 'レビューを更新しました。');
     }
 
     /**
@@ -62,6 +62,6 @@ class ReviewController extends Controller
 
         return redirect()
             ->route('books.show', $bookId)
-            ->with('success', 'レビューを削除しました');
+            ->with('success', 'レビューを削除しました。');
     }
 }

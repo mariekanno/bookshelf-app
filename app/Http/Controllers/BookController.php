@@ -50,7 +50,7 @@ class BookController extends Controller
 
         return redirect()
             ->route('books.show', $book)
-            ->with('success', '書籍を登録しました');
+            ->with('success', '書籍を登録しました。');
     }
 
     /**
@@ -105,7 +105,7 @@ class BookController extends Controller
 
         return redirect()
             ->route('books.show', $book)
-            ->with('success', '書籍を更新しました');
+            ->with('success', '書籍情報を更新しました。');
     }
 
     /**
@@ -119,6 +119,6 @@ class BookController extends Controller
 
         return redirect()
             ->route('books.index')
-            ->with('success', '書籍を削除しました');
+            ->with('success', '書籍を削除しました。');
     }
 }
