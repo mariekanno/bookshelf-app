@@ -13,7 +13,7 @@ class FavoriteController extends Controller
     {
         $books = auth()->user()
             ->favoriteBooks()
-            ->latest('favorites.created_at')
+            ->orderByPivot('created_at', 'desc')
             ->paginate(10);
 
         return view('favorites.index', compact('books'));
