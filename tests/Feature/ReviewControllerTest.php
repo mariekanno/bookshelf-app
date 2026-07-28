@@ -119,4 +119,147 @@ class ReviewControllerTest extends TestCase
             'comment' => '更新前のレビューです。',
         ]);
     }
+
+    /** @test */
+    public function レビュー投稿者はレビューを更新できる(): void
+    {
+        // Arrange
+        $user = User::factory()->create();
+        $book = Book::factory()->create();
+
+        $review = Review::factory()->create([
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'rating' => 3,
+            'comment' => '更新前のレビューです。',
+        ]);
+
+        $updateData = [
+            'rating' => 5,
+            'comment' => '更新後のレビューです。',
+        ];
+
+        // Act
+        $response = $this
+            ->actingAs($user)
+            ->from(route('reviews.edit', $review))
+            ->put(route('reviews.update', $review), $updateData);
+
+        // Assert
+        $this->assertDatabaseHas('reviews', [
+            'id' => $review->id,
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'rating' => 5,
+            'comment' => '更新後のレビューです。',
+        ]);
+
+        $response->assertRedirect(route('books.show', $book));
+
+        $response->assertSessionHas(
+            'success',
+            'レビューを更新しました。'
+        );
+    }
+
+    /** @test */
+    public function レビュー投稿者以外はレビューを更新できない(): void
+    {
+        // Arrange
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $book = Book::factory()->create();
+
+        $review = Review::factory()->create([
+            'user_id' => $owner->id,
+            'book_id' => $book->id,
+            'rating' => 3,
+            'comment' => '更新前のレビューです。',
+        ]);
+
+        $updateData = [
+            'rating' => 5,
+            'comment' => '不正に更新されたレビューです。',
+        ];
+
+        // Act
+        $response = $this
+            ->actingAs($otherUser)
+            ->put(route('reviews.update', $review), $updateData);
+
+        // Assert
+        $response->assertForbidden();
+
+        $this->assertDatabaseHas('reviews', [
+            'id' => $review->id,
+            'user_id' => $owner->id,
+            'book_id' => $book->id,
+            'rating' => 3,
+            'comment' => '更新前のレビューです。',
+        ]);
+
+        $this->assertDatabaseMissing('reviews', [
+            'id' => $review->id,
+            'rating' => 5,
+            'comment' => '不正に更新されたレビューです。',
+        ]);
+    }
+
+    /** @test */
+    public function レビュー投稿者はレビューを削除できる(): void
+    {
+        // Arrange
+        $user = User::factory()->create();
+        $book = Book::factory()->create();
+
+        $review = Review::factory()->create([
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+        ]);
+
+        // Act
+        $response = $this
+            ->actingAs($user)
+            ->delete(route('reviews.destroy', $review));
+
+        // Assert
+        $this->assertDatabaseMissing('reviews', [
+            'id' => $review->id,
+        ]);
+
+        $response->assertRedirect(route('books.show', $book));
+
+        $response->assertSessionHas(
+            'success',
+            'レビューを削除しました。'
+        );
+    }
+
+    /** @test */
+    public function レビュー投稿者以外はレビューを削除できない(): void
+    {
+        // Arrange
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $book = Book::factory()->create();
+
+        $review = Review::factory()->create([
+            'user_id' => $owner->id,
+            'book_id' => $book->id,
+        ]);
+
+        // Act
+        $response = $this
+            ->actingAs($otherUser)
+            ->delete(route('reviews.destroy', $review));
+
+        // Assert
+        $response->assertForbidden();
+
+        $this->assertDatabaseHas('reviews', [
+            'id' => $review->id,
+            'user_id' => $owner->id,
+            'book_id' => $book->id,
+        ]);
+    }
 }
