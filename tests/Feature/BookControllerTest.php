@@ -225,6 +225,30 @@ class BookControllerTest extends TestCase
     }
 
     /** @test */
+    public function 書籍作成者以外は書籍を削除できない(): void
+    {
+        // Arrange
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $book = Book::factory()->create([
+            'created_by' => $owner->id,
+        ]);
+
+        // Act
+        $response = $this
+            ->actingAs($otherUser)
+            ->delete(route('books.destroy', $book));
+
+        // Assert
+        $response->assertForbidden();
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+        ]);
+    }
+
+    /** @test */
     public function 存在しない書籍_i_dにアクセスした場合404が返る(): void
     {
         // Arrange
