@@ -56,4 +56,9 @@ class Book extends Model
             'user_id'
         )->withTimestamps();
     }
+
+    public function readingPlans(): HasMany
+    {
+        return $this->hasMany(ReadingPlan::class);
+    }
 }
