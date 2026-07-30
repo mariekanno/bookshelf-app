@@ -56,3 +56,7 @@ Route::middleware('auth')->group(function () {
 
 Route::get('/books/{book}', [BookController::class, 'show'])
     ->name('books.show');
+
+Route::view('/reports', 'reports.index')->name('reports.index');
+Route::view('/reading-plans', 'reading-plans.index')->name('reading-plans.index');
+Route::view('/notifications', 'notifications.index')->name('notifications.index');
