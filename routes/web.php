@@ -4,6 +4,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\RankingController;
+use App\Http\Controllers\ReadingPlanController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewLikeController;
 use Illuminate\Support\Facades\Route;
@@ -52,11 +53,18 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/reviews/{review}/like', [ReviewLikeController::class, 'toggle'])
         ->name('reviews.like');
+
+    Route::post(
+        '/reading-plans/{readingPlan}/complete',
+        [ReadingPlanController::class, 'complete']
+    )->name('reading-plans.complete');
+
+    Route::resource('reading-plans', ReadingPlanController::class)
+        ->except(['show']);
 });
 
 Route::get('/books/{book}', [BookController::class, 'show'])
     ->name('books.show');
 
 Route::view('/reports', 'reports.index')->name('reports.index');
-Route::view('/reading-plans', 'reading-plans.index')->name('reading-plans.index');
 Route::view('/notifications', 'notifications.index')->name('notifications.index');

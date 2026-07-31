@@ -15,8 +15,14 @@ class ReadingPlan extends Model
         'user_id',
         'book_id',
         'target_date',
-        'finished_at',
+        'completed_at',
         'status',
+    ];
+
+    protected $casts = [
+        'target_date' => 'date',
+        'completed_at' => 'datetime',
+        'status' => ReadingPlanStatus::class,
     ];
 
     public function user(): BelongsTo
