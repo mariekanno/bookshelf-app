@@ -3,6 +3,7 @@
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\MyReportController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ReadingPlanController;
@@ -71,9 +72,10 @@ Route::middleware('auth')->group(function () {
         [NotificationController::class, 'read']
     )
         ->name('notifications.read');
+
+    Route::get('/reports', [MyReportController::class, 'index'])
+        ->name('reports.index');
 });
 
 Route::get('/books/{book}', [BookController::class, 'show'])
     ->name('books.show');
-
-Route::view('/reports', 'reports.index')->name('reports.index');

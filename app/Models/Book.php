@@ -22,6 +22,10 @@ class Book extends Model
         'created_by',
     ];
 
+    protected $casts = [
+        'published_date' => 'date',
+    ];
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
