@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\ReadingPlanStatus;
 use App\Models\ReadingPlan;
 use App\Notifications\ReadingPlanReminderNotification;
 use Illuminate\Console\Command;
@@ -47,8 +48,15 @@ class SendReadingPlanReminders extends Command
 
     public function sendReminders(string $targetDate, string $type): void
     {
-        $readingPlans = ReadingPlan::with(['book', 'user'])
-            ->inProgress()
+        $query = ReadingPlan::with(['book', 'user']);
+
+        if ($type === 'after_3_days') {
+            $query->where('status', ReadingPlanStatus::Overdue);
+        } else {
+            $query->where('status', ReadingPlanStatus::InProgress);
+        }
+
+        $readingPlans = $query
             ->dueOn($targetDate)
             ->get();
 

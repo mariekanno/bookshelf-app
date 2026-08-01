@@ -41,8 +41,8 @@ class ReviewSeeder extends Seeder
                 Review::create([
                     'user_id' => $user->id,
                     'book_id' => $book->id,
-                    'rating' => (($bookIndex + $userIndex) % 3) + 3,
-                    'comment' => $comments[$bookIndex],
+                    'rating' => (($bookIndex + $userIndex) % 5) + 1,
+                    'comment' => $comments[$bookIndex % count($comments)],
                 ]);
             }
         }
