@@ -14,7 +14,11 @@ class BookSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::first();
+        $users = User::all();
+
+        if ($users->isEmpty()) {
+            return;
+        }
 
         $books = [
             [
@@ -129,7 +133,7 @@ class BookSeeder extends Seeder
                 ],
                 [
                     ...$bookData,
-                    'created_by' => $user->id,
+                    'created_by' => $users->random()->id,
                 ]
             );
 

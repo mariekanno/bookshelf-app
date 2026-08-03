@@ -17,9 +17,10 @@ class ReadingPlanSeeder extends Seeder
     public function run(): void
     {
         $user = User::first();
-        $books = Book::take(5)->get();
+        $otherUser = User::whereKeyNot($user->id)->first();
+        $books = Book::take(7)->get();
 
-        if (! $user || $books->count() < 5) {
+        if (! $user || ! $otherUser || $books->count() < 7) {
             return;
         }
 
@@ -62,6 +63,22 @@ class ReadingPlanSeeder extends Seeder
             'target_date' => Carbon::today()->subDays(7),
             'completed_at' => Carbon::today()->subDays(6),
             'status' => ReadingPlanStatus::Completed,
+        ]);
+
+        // 認可確認用:ログインユーザー本人の読書計画
+        ReadingPlan::create([
+            'user_id' => $user->id,
+            'book_id' => $books[5]->id,
+            'target_date' => Carbon::today()->addDays(7),
+            'status' => ReadingPlanStatus::InProgress,
+        ]);
+
+        // 認可確認用:別ユーザーの読書計画
+        ReadingPlan::create([
+            'user_id' => $otherUser->id,
+            'book_id' => $books[6]->id,
+            'target_date' => Carbon::today()->addDays(7),
+            'status' => ReadingPlanStatus::InProgress,
         ]);
     }
 }
