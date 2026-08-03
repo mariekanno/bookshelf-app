@@ -75,6 +75,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/reports', [MyReportController::class, 'index'])
         ->name('reports.index');
+
+    Route::get('/books/isbn/{isbn}', [BookController::class, 'searchByIsbn'])
+        ->name('books.search-by-isbn');
 });
 
 Route::get('/books/{book}', [BookController::class, 'show'])
