@@ -6,20 +6,61 @@ use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
 use App\Models\Genre;
+use App\Services\GoogleBooksService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $books = Book::with('genres')
-            ->withCount(['favorites', 'reviews'])
-            ->latest()
-            ->paginate(10);
+        $query = Book::with('genres')
+            ->withAvg('reviews', 'rating');
 
-        return view('books.index', compact('books'));
+        if ($request->filled('keyword')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', '%'.$request->keyword.'%')
+                    ->orWhere('author', 'like', '%'.$request->keyword.'%');
+            });
+        }
+
+        if ($request->filled('genre')) {
+            $genreId = $request->input('genre');
+
+            $query->whereHas('genres', function ($query) use ($genreId) {
+                $query->where('genres.id', $genreId);
+            });
+        }
+
+        switch ($request->input('sort', 'newest')) {
+            case 'oldest':
+                $query->oldest();
+                break;
+
+            case 'rating':
+                $query->orderByDesc('reviews_avg_rating');
+                break;
+
+            case 'title':
+                $query->orderBy('title');
+                break;
+
+            case 'newest':
+            default:
+                $query->latest();
+                break;
+        }
+
+        $books = $query
+            ->paginate(10)
+            ->withQueryString();
+
+        $genres = Genre::all();
+
+        return view('books.index', compact('books', 'genres'));
     }
 
     /**
@@ -120,5 +161,26 @@ class BookController extends Controller
         return redirect()
             ->route('books.index')
             ->with('success', '書籍を削除しました。');
+    }
+
+    public function searchByIsbn(
+        string $isbn,
+        GoogleBooksService $googleBooksService
+    ): JsonResponse {
+        if (! preg_match('/^\d{13}$/', $isbn)) {
+            return response()->json([
+                'error' => 'ISBNは13桁で入力してください。',
+            ], 422);
+        }
+
+        $bookData = $googleBooksService->searchByIsbn($isbn);
+
+        if ($bookData === null) {
+            return response()->json([
+                'error' => '該当する書籍が見つかりませんでした。',
+            ], 404);
+        }
+
+        return response()->json($bookData);
     }
 }
