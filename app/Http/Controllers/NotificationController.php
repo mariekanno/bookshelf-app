@@ -31,6 +31,7 @@ class NotificationController extends Controller
         $notification->markAsRead();
 
         return redirect()
-            ->route('notifications.index');
+            ->route('notifications.index')
+            ->with('success', '通知を既読にしました。');
     }
 }
