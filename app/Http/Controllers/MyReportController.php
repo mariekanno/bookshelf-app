@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ReadingPlanStatus;
-use App\Models\ReadingPlan;
 use App\Models\Review;
 
 class MyReportController extends Controller
@@ -18,8 +16,7 @@ class MyReportController extends Controller
 
         $averageRating = (clone $reviews)->avg('rating') ?? 0;
 
-        $booksRead = ReadingPlan::where('user_id', $userId)
-            ->where('status', ReadingPlanStatus::Completed)
+        $booksRead = Review::where('user_id', $userId)
             ->distinct('book_id')
             ->count('book_id');
 
