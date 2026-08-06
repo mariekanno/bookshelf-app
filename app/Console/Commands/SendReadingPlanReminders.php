@@ -34,7 +34,7 @@ class SendReadingPlanReminders extends Command
 
         $this->sendReminders(
             today()->toDateString(),
-            'due_todady'
+            'due_today'
         );
 
         $this->sendReminders(
@@ -48,7 +48,7 @@ class SendReadingPlanReminders extends Command
     public function sendReminders(string $targetDate, string $type): void
     {
         $readingPlans = ReadingPlan::with(['book', 'user'])
-            ->inProgress()
+            ->reminderTarget()
             ->dueOn($targetDate)
             ->get();
 
