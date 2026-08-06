@@ -8,10 +8,17 @@ class GoogleBooksService
 {
     public function searchByIsbn(string $isbn): ?array
     {
-        $response = Http::get('https://www.googleapis.com/books/v1/volumes', [
-            'q' => 'isbn:'.$isbn,
-            'key' => config('services.google_books.api_key'),
-        ]);
+        try {
+            $response = Http::get(
+                'https://www.googleapis.com/books/v1/volumes',
+                [
+                    'q' => 'isbn:'.$isbn,
+                    'key' => config('services.google_books.api_key'),
+                ]
+            );
+        } catch (ConnectionException) {
+            return null;
+        }
 
         if ($response->failed()) {
             return null;

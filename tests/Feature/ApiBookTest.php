@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class ApiBookTest extends TestCase
@@ -107,6 +108,8 @@ class ApiBookTest extends TestCase
         // Arrange
         $user = User::factory()->create();
 
+        Sanctum::actingAs($user);
+
         $genre = Genre::factory()->create([
             'name' => '小説',
         ]);
@@ -168,6 +171,10 @@ class ApiBookTest extends TestCase
     public function 書籍登録_ap_iのバリデーション時は422を返す(): void
     {
         // Arrange
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
         $invalidBookData = [
             'title' => '',
             'author' => '',
@@ -187,7 +194,6 @@ class ApiBookTest extends TestCase
             'author',
             'isbn',
             'published_date',
-            'created_by',
         ]);
 
         $this->assertDatabaseCount('books', 0);
@@ -204,6 +210,8 @@ class ApiBookTest extends TestCase
             'author' => '更新前の著者',
             'created_by' => $user->id,
         ]);
+
+        Sanctum::actingAs($user);
 
         $genre = Genre::factory()->create([
             'name' => '小説',
@@ -265,6 +273,8 @@ class ApiBookTest extends TestCase
         // Arrange
         $user = User::factory()->create();
 
+        Sanctum::actingAs($user);
+
         $book = Book::factory()->create([
             'title' => '更新前のタイトル',
             'author' => '更新前の著者',
@@ -276,7 +286,6 @@ class ApiBookTest extends TestCase
             'author' => '',
             'isbn' => '',
             'published_date' => '',
-            'created_by' => '',
         ];
 
         // Act
@@ -293,7 +302,6 @@ class ApiBookTest extends TestCase
             'author',
             'isbn',
             'published_date',
-            'created_by',
         ]);
 
         $this->assertDatabaseHas('books', [
@@ -309,6 +317,8 @@ class ApiBookTest extends TestCase
     {
         // Arrange
         $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
 
         $updateData = [
             'title' => '更新後のタイトル',
@@ -345,6 +355,8 @@ class ApiBookTest extends TestCase
             'created_by' => $user->id,
         ]);
 
+        Sanctum::actingAs($user);
+
         // Act
         $response = $this->deleteJson("/api/v1/books/{$book->id}");
 
@@ -359,6 +371,11 @@ class ApiBookTest extends TestCase
     /** @test */
     public function 存在しない書籍削除_ap_iは404を返す(): void
     {
+        // Arrange
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
         // Act
         $response = $this->deleteJson('/api/v1/books/999999');
 
@@ -367,6 +384,116 @@ class ApiBookTest extends TestCase
 
         $response->assertJson([
             'message' => '書籍が見つかりませんでした。',
+        ]);
+    }
+
+    /** @test */
+    public function sanctum認証済みなら書籍登録_apiを実行できる(): void
+    {
+        // Arrange
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $genre = Genre::factory()->create();
+
+        $bookData = [
+            'title' => 'Sanctumテスト',
+            'author' => 'テスト著者',
+            'isbn' => '9999999999999',
+            'published_date' => '2026-08-06',
+            'description' => 'テストです。',
+            'image_url' => 'https://example.com/book.jpg',
+            'genres' => [$genre->id],
+            'created_by' => $user->id,
+        ];
+
+        // Act
+        $response = $this->postJson('/api/v1/books', $bookData);
+
+        // Assert
+        $response->assertCreated();
+
+        $this->assertDatabaseHas('books', [
+            'title' => 'Sanctumテスト',
+        ]);
+    }
+
+    /** @test */
+    public function sanctum未認証では401を返す(): void
+    {
+        // Arrange
+        $genre = Genre::factory()->create();
+
+        $bookData = [
+            'title' => 'テスト',
+            'author' => '著者',
+            'isbn' => '8888888888888',
+            'published_date' => '2026-08-06',
+            'description' => 'テスト',
+            'image_url' => 'https://example.com/book.jpg',
+            'genres' => [$genre->id],
+            'created_by' => 1,
+        ];
+
+        // Act
+        $response = $this->postJson('/api/v1/books', $bookData);
+
+        // Assert
+        $response->assertUnauthorized();
+    }
+
+    /** @test */
+    public function 他人の書籍は更新できず403を返す(): void
+    {
+        // Arrange
+        $owner = User::factory()->create();
+
+        $otherUser = User::factory()->create();
+
+        Sanctum::actingAs($otherUser);
+
+        $book = Book::factory()->create([
+            'title' => '更新前のタイトル',
+            'author' => '更新前の著者',
+            'created_by' => $owner->id,
+        ]);
+
+        $genre = Genre::factory()->create([
+            'name' => '小説',
+        ]);
+
+        $updateData = [
+            'title' => '更新後のタイトル',
+            'author' => '更新後の著者',
+            'isbn' => '1234567890123',
+            'published_date' => '2026-08-06',
+            'description' => '更新後説明',
+            'image_url' => 'https://example.com/book.jpg',
+            'genres' => [$genre->id],
+            'created_by' => $owner->id,
+        ];
+
+        // Act
+        $response = $this->putJson(
+            "/api/v1/books/{$book->id}",
+            $updateData
+        );
+
+        // Assert
+        $response->assertForbidden();
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+            'title' => '更新前のタイトル',
+            'author' => '更新前の著者',
+            'created_by' => $owner->id,
+        ]);
+
+        $this->assertDatabaseMissing('books', [
+            'id' => $book->id,
+            'title' => '更新後のタイトル',
+            'author' => '更新後の著者',
         ]);
     }
 }

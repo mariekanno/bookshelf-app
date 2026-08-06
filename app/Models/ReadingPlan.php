@@ -44,6 +44,14 @@ class ReadingPlan extends Model
         );
     }
 
+    public function scopeReminderTarget(Builder $query): Builder
+    {
+        return $query->whereIn('status', [
+            ReadingPlanStatus::InProgress,
+            ReadingPlanStatus::Overdue,
+        ]);
+    }
+
     public function scopeDueOn(Builder $query, string $date): Builder
     {
         return $query->whereDate('target_date', $date);
