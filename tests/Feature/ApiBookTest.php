@@ -388,6 +388,32 @@ class ApiBookTest extends TestCase
     }
 
     /** @test */
+    public function 他人の書籍は削除できず403を返す(): void
+    {
+        // Arrange
+        $owner = User::factory()->create();
+
+        $otherUser = User::factory()->create();
+
+        Sanctum::actingAs($otherUser);
+
+        $book = Book::factory()->create([
+            'created_by' => $owner->id,
+        ]);
+
+        // Act
+        $response = $this->deleteJson("/api/v1/books/{$book->id}");
+
+        // Assert
+        $response->assertForbidden();
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+            'created_by' => $owner->id,
+        ]);
+    }
+
+    /** @test */
     public function sanctum認証済みなら書籍登録_apiを実行できる(): void
     {
         // Arrange
