@@ -9,11 +9,21 @@ use App\Models\Genre;
 use App\Services\GoogleBooksService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
+/**
+ * 書籍の一覧表示・検索・登録・更新・削除を管理するコントローラー。
+ *
+ * 書籍一覧ではキーワード検索、ジャンル絞り込み、ソートに対応する。
+ * 登録・更新・削除では、書籍の作成者に対する認可を行う。
+ */
 class BookController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * 書籍一覧を表示する。
+     *
+     * タイトル・著者によるキーワード検索、ジャンル絞り込み、
+     * 新しい順・古い順・評価順・タイトル順の並び替えに対応する。
      */
     public function index(Request $request)
     {
@@ -64,7 +74,9 @@ class BookController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * 書籍の新規登録画面を表示する。
+     *
+     * 登録時に選択できるジャンル一覧を取得して画面に渡す。
      */
     public function create()
     {
@@ -74,7 +86,12 @@ class BookController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * 新しい書籍を登録する。
+     *
+     * 書籍本体を保存した後、中間テーブルを利用して
+     * 選択されたジャンルを紐付ける。
+     *
+     * @param  StoreBookRequest  $request  検証済みの書籍登録データ
      */
     public function store(StoreBookRequest $request)
     {
@@ -85,9 +102,13 @@ class BookController extends Controller
 
         $validated['created_by'] = auth()->id();
 
-        $book = Book::create($validated);
+        $book = DB::transaction(function () use ($validated, $genreIds) {
+            $book = Book::create($validated);
 
-        $book->genres()->sync($genreIds);
+            $book->genres()->sync($genreIds);
+
+            return $book;
+        });
 
         return redirect()
             ->route('books.show', $book)
@@ -95,7 +116,12 @@ class BookController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * 指定された書籍の詳細を表示する。
+     *
+     * ジャンル・レビュー・お気に入り数など、
+     * 詳細画面に必要な関連情報をあわせて取得する。
+     *
+     * @param  Book  $book  表示対象の書籍
      */
     public function show(Book $book)
     {
@@ -115,7 +141,11 @@ class BookController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * 書籍の編集画面を表示する。
+     *
+     * Policyにより、書籍の作成者だけが編集できる。
+     *
+     * @param  Book  $book  編集対象の書籍
      */
     public function edit(Book $book)
     {
@@ -129,7 +159,13 @@ class BookController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * 書籍情報を更新する。
+     *
+     * 書籍本体の情報を更新し、選択されたジャンルとの紐付けも同期する。
+     * Policyにより、書籍の作成者だけが更新できる。
+     *
+     * @param  UpdateBookRequest  $request  検証済みの書籍更新データ
+     * @param  Book  $book  更新対象の書籍
      */
     public function update(UpdateBookRequest $request, Book $book)
     {
@@ -140,9 +176,12 @@ class BookController extends Controller
         $genreIds = $validated['genres'];
         unset($validated['genres']);
 
-        $book->update($validated);
+        DB::transaction(function () use ($book, $validated, $genreIds) {
+            $book->update($validated);
 
-        $book->genres()->sync($genreIds);
+            // 現在のジャンルとの紐付けを、送信されたジャンルへ置き換える
+            $book->genres()->sync($genreIds);
+        });
 
         return redirect()
             ->route('books.show', $book)
@@ -150,7 +189,11 @@ class BookController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 指定された書籍を削除する。
+     *
+     * Policyにより、書籍の作成者だけが削除できる。
+     *
+     * @param  Book  $book  削除対象の書籍
      */
     public function destroy(Book $book)
     {
@@ -163,6 +206,14 @@ class BookController extends Controller
             ->with('success', '書籍を削除しました。');
     }
 
+    /**
+     * ISBNをもとにGoogle Books APIから書籍情報を取得する。
+     *
+     * ISBNが13桁でない場合や、該当書籍を取得できない場合は
+     * エラーレスポンスを返す。
+     *
+     * @param  Request  $request  ISBNを含む検索リクエスト
+     */
     public function searchByIsbn(
         string $isbn,
         GoogleBooksService $googleBooksService
@@ -173,6 +224,7 @@ class BookController extends Controller
             ], 422);
         }
 
+        // 外部APIとの通信処理はサービスクラスへ委譲する
         $bookData = $googleBooksService->searchByIsbn($isbn);
 
         if ($bookData === null) {

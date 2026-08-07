@@ -6,6 +6,12 @@ use App\Models\ReadingPlan;
 use App\Notifications\ReadingPlanReminderNotification;
 use Illuminate\Console\Command;
 
+/**
+ * 読書計画の期日に応じてリマインダー通知を送信するコマンド。
+ *
+ * 期日3日前・期日当日・期日3日後に該当する読書計画を取得し、
+ * 対象ユーザーへデータベース通知を送信する。
+ */
 class SendReadingPlanReminders extends Command
 {
     /**
@@ -23,7 +29,10 @@ class SendReadingPlanReminders extends Command
     protected $description = 'Send reading plan reminder notifications.';
 
     /**
-     * Execute the console command.
+     * 読書計画の期日に応じたリマインダー通知を実行する。
+     *
+     * 期日3日前・期日当日・期日3日後の読書計画を対象として、
+     * それぞれの通知種別を指定して通知処理を呼び出す。
      */
     public function handle(): int
     {
@@ -45,6 +54,15 @@ class SendReadingPlanReminders extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * 指定した期日に一致する読書計画のユーザーへ通知を送信する。
+     *
+     * 進行中または期限切れの読書計画を取得し、
+     * 書籍情報とユーザー情報を読み込んだうえで通知する。
+     *
+     * @param  string  $targetDate  通知対象となる読書期日
+     * @param  string  $type  通知の種類
+     */
     public function sendReminders(string $targetDate, string $type): void
     {
         $readingPlans = ReadingPlan::with(['book', 'user'])
