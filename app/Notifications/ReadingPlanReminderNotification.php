@@ -6,12 +6,21 @@ use App\Models\ReadingPlan;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
+/**
+ * 読書計画の期日に応じたリマインダー通知を生成するクラス。
+ *
+ * 期日3日前・期日当日・期日3日後の通知内容を作成し、
+ * データベース通知として保存する。
+ */
 class ReadingPlanReminderNotification extends Notification
 {
     use Queueable;
 
     /**
-     * Create a new notification instance.
+     * 通知インスタンスを生成する。
+     *
+     * @param  ReadingPlan  $readingPlan  通知対象の読書計画
+     * @param  string  $type  通知の種類
      */
     public function __construct(
         private ReadingPlan $readingPlan,
@@ -19,9 +28,10 @@ class ReadingPlanReminderNotification extends Notification
     ) {}
 
     /**
-     * Get the notification's delivery channels.
+     * 通知の配信方法を指定する。
      *
-     * @return array<int, string>
+     * @param  object  $notifiable  通知先のユーザー
+     * @return array<int, string> 通知チャンネル
      */
     public function via(object $notifiable): array
     {
@@ -29,9 +39,10 @@ class ReadingPlanReminderNotification extends Notification
     }
 
     /**
-     * Get the array representation of the notification.
+     * データベースへ保存する通知内容を配列で返す。
      *
-     * @return array<string, mixed>
+     * @param  object  $notifiable  通知先のユーザー
+     * @return array<string, mixed> 通知データ
      */
     public function toArray(object $notifiable): array
     {
@@ -46,6 +57,9 @@ class ReadingPlanReminderNotification extends Notification
         ];
     }
 
+    /**
+     * 通知種別に対応するタイミング識別子を返す。
+     */
     private function timing(): string
     {
         return match ($this->type) {
@@ -56,6 +70,9 @@ class ReadingPlanReminderNotification extends Notification
         };
     }
 
+    /**
+     * 通知種別に応じた通知タイトルを返す。
+     */
     private function title(): string
     {
         return match ($this->type) {
@@ -66,6 +83,9 @@ class ReadingPlanReminderNotification extends Notification
         };
     }
 
+    /**
+     * 通知種別に応じた本文を返す。
+     */
     private function message(): string
     {
         return match ($this->type) {

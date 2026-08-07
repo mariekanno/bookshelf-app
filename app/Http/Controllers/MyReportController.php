@@ -4,8 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Review;
 
+/**
+ * ログインユーザーの読書実績を集計し、
+ * マイ読書レポート画面へ表示するコントローラー。
+ *
+ * レビュー数・平均評価・読了冊数・高評価書籍など、
+ * ユーザー自身のレビューをもとに統計情報を作成する。
+ */
 class MyReportController extends Controller
 {
+    /**
+     * ログインユーザーの読書レポートを表示する。
+     *
+     * ユーザー自身のレビューを対象として各種統計を集計し、
+     * レポート画面へ渡す。
+     */
     public function index()
     {
         $userId = auth()->id();
@@ -70,6 +83,7 @@ class MyReportController extends Controller
             ->take(5)
             ->values();
 
+        // 画面表示に必要な統計情報を項目ごとにまとめる
         $stats = [
             'summary' => [
                 'total_reviews' => $totalReviews,
