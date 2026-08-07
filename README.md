@@ -1,4 +1,4 @@
-# Bookshelf App
+# Bookshelf書籍レビューアプリ
 
 Laravelを使用して開発した書籍管理アプリです。
 
