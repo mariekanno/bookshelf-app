@@ -214,7 +214,7 @@ http://localhost
 ## 1. リポジトリをクローン
 
 ```bash
-git clone <リポジトリURL>
+git clone https://github.com/mariekanno/bookshelf-app.git
 ```
 
 ## 2. .envを作成
